@@ -1,9 +1,7 @@
 import re
 from typing import Generator
-
-import requests
+from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
-from bs4.element import Tag
 
 from ebAlert import create_logger
 from ebAlert.core.config import settings
@@ -13,7 +11,7 @@ log = create_logger(__name__)
 
 class EbayItem:
     """Class ebay item"""
-    def __init__(self, contents: Tag):
+    def __init__(self, contents):
         self.contents = contents
         self._city = None
         self._distance = None
@@ -79,20 +77,20 @@ class EbayItemFactory:
         self.link = link
         web_pages = self.get_webpage()
         if web_pages:
-            articles = self.extract_item_from_page(self.get_webpage())
+            articles = self.extract_item_from_page(web_pages)
             self.item_list = [EbayItem(article) for article in articles]
         else:
             self.item_list = []
 
     def get_webpage(self) -> str:
-        custom_header = {
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0"
-        }
-        response = requests.get(self.link, headers=custom_header)
-        if response and response.status_code == 200:
-            return response.text
-        else:
-            print(f"<< webpage fetching error for url: {self.link}")
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context()
+            page = context.new_page()
+            page.goto(self.link, wait_until="networkidle")
+            content = page.content()
+            browser.close()
+            return content
 
     @staticmethod
     def extract_item_from_page(text: str) -> Generator:

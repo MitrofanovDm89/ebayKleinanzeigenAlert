@@ -1,0 +1,19 @@
+[project]
+name = "KleinanzeigenLisa"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "", email = ""},
+]
+dependencies = ["playwright>=1.51.0", "beautifulsoup4>=4.13.3", "requests>=2.32.3", "sqlalchemy>=2.0.39", "click>=8.1.8", "python-telegram-bot>=22.0"]
+requires-python = "==3.13.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.scripts]
+telegram = "python -m ebAlert.telegram.telegram_bot"
+
